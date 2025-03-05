@@ -50,8 +50,6 @@ export class TableComponent implements OnInit, AfterViewInit {
   ];
   dataSource = new MatTableDataSource<Crypto>();
   searchTerm: string = '';
-  selectedFilters: string[] = ['name', 'symbol', 'market_cap'];
-  filterOptions: string[] = ['name', 'symbol', 'market_cap'];
   selectedSymbols = new FormControl<string[]>([], { nonNullable: true });
   availableSymbols: string[] = [];
   isLoading$: Observable<boolean>;
@@ -71,6 +69,7 @@ export class TableComponent implements OnInit, AfterViewInit {
     this.cryptos$.subscribe(cryptos => {
       this.dataSource.data = cryptos;
       this.availableSymbols = [...new Set(cryptos.map((item: Crypto) => item.symbol))];
+
       setTimeout(() => {
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
@@ -87,23 +86,35 @@ export class TableComponent implements OnInit, AfterViewInit {
     };
     this.dataSource.filterPredicate = (data: any) => {
       const searchValue = this.searchTerm.trim().toLowerCase();
-
-      if (this.selectedSymbols.value.length > 0 &&
-        !this.selectedSymbols.value.includes(data.symbol)) {
+      if (this.selectedSymbols.value.length > 0 && !this.selectedSymbols.value.includes(data.symbol)) {
         return false;
       }
-
-      return this.selectedFilters.some(filterKey =>
-        data[filterKey]?.toString().toLowerCase().includes(searchValue)
+      return (
+        data.name.toLowerCase().includes(searchValue) ||
+        data.symbol.toLowerCase().includes(searchValue) ||
+        data.market_cap.toString().includes(searchValue)
       );
     };
   }
+
   applyFilter() {
-    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
+    this.dataSource.filter = Math.random().toString();
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
   }
+
+  pageSelect(event: any) {
+    const page = event.pageIndex + 1;
+    const pageSize = event.pageSize;
+    this.store.dispatch(CryptoActions.loadCryptos({ page, pageSize }));
+
+    setTimeout(() => {
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
   formatPercentage(value: number | null | undefined): string {
     if (value === null || value === undefined) {
       return "0.00%";
@@ -111,26 +122,12 @@ export class TableComponent implements OnInit, AfterViewInit {
     return value > 0 ? `+${value.toFixed(2)}%` : `${value.toFixed(2)}%`;
   }
 
-  pageSelect(event: any) {
-    const page = event.pageIndex + 1;
-    const pageSize = event.pageSize;
-    this.store.dispatch(CryptoActions.loadCryptos({ page, pageSize })); 
-    setTimeout(() => {
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
- 
   resetSearch() {
     this.searchTerm = '';
-    this.dataSource.filter = '';
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+    this.applyFilter();
   }
- 
+
   resetFilters() {
-    this.searchTerm = '';
     this.selectedSymbols.setValue([]);
     this.applyFilter();
   }
