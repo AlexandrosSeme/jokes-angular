@@ -37,30 +37,47 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   initCharts(cryptoData: Crypto[]): void {
     if (typeof window !== 'undefined') {
-      import('highcharts').then(Highcharts => {
+      import('highcharts').then(module => {
+        const Highcharts = module.default;
         const categories = cryptoData.map(d => d.name);
-        new Highcharts.Chart({
-          chart: { type: 'line', renderTo: 'chartPrice' },
-          title: { text: 'Current Price' },
-          xAxis: { categories },
-          yAxis: { title: { text: 'Price ($)' } },
-          series: [{ name: 'Price', type: 'line', data: cryptoData.map(d => d.current_price) }]
-        });
-        new Highcharts.Chart({
-          chart: { type: 'line', renderTo: 'chartMarketCap' },
-          title: { text: 'Market Capitalization' },
-          xAxis: { categories },
-          yAxis: { title: { text: 'Market Cap ($)' } },
-          series: [{ name: 'Market Cap', type: 'line', data: cryptoData.map(d => d.market_cap) }]
-        });
-        new Highcharts.Chart({
-          chart: { type: 'line', renderTo: 'chartVolume' },
-          title: { text: 'Trading Volume' },
-          xAxis: { categories },
-          yAxis: { title: { text: 'Volume ($)' } },
-          series: [{ name: 'Trading Volume', type: 'line', data: cryptoData.map(d => d.total_volume) }]
-        });
+        const createChart = (elementId: string, title: string, data: number[], color: string) => {
+          const el = document.getElementById(elementId);
+          if (!el) return;
+          Highcharts.chart(el, {
+            chart: {
+              type: 'line',
+              backgroundColor: 'white',
+              borderRadius: 8,
+              style: { fontFamily: 'Arial, sans-serif' },
+              height: 350,
+            },
+            title: { text: title, style: { fontSize: '16px', fontWeight: 'bold', color: '#777' } },
+            xAxis: { categories, labels: { style: { fontSize: '7px', color: '#777' } } },
+            yAxis: {
+              title: { text: title.includes('Price') ? 'Price ($)' : title.includes('Market') ? 'Market Cap ($)' : 'Volume ($)' },
+              labels: { style: { fontSize: '12px', color: '#777' } },
+              gridLineWidth: 0.7,
+              gridLineColor: '#ddd'
+            },
+            tooltip: { shared: true, backgroundColor: '#fff', borderColor: color, borderRadius: 6, shadow: true, style: { color: '#333' } },
+            legend: { itemStyle: { fontSize: '13px', fontWeight: 'bold', color: '#333' } },
+            plotOptions: {
+              line: {
+                dataLabels: { enabled: true, style: { fontSize: '10px' } },
+                enableMouseTracking: true,
+                marker: { enabled: true, radius: 4, fillColor: color, lineWidth: 2, lineColor: '#fff' }
+              }
+            },
+            series: [{ name: title, type: 'line', data, color, lineWidth: 3 }]
+          });
+        };
+        
+        const themeColors = { price: '#00c3ff', marketCap: '#ff7300', volume: '#7cb5ec' };
+        createChart('chartPrice', 'Current Price', cryptoData.map(d => d.current_price), themeColors.price);
+        createChart('chartMarketCap', 'Market Capitalization', cryptoData.map(d => d.market_cap), themeColors.marketCap);
+        createChart('chartVolume', 'Trading Volume', cryptoData.map(d => d.total_volume), themeColors.volume);
       });
     }
   }
+
 }
