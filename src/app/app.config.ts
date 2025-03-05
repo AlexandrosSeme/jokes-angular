@@ -1,9 +1,16 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
-
-import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { ApplicationConfig } from '@angular/core';
+import { provideStore } from '@ngrx/store';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideEffects } from '@ngrx/effects';
+import { cryptoReducer } from './store/crypto.reducer';
+import { CryptoEffects } from './store/crypto.effects';
+import { ApiService } from './services/api.service'; // ✅ Ensure this is imported
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideClientHydration(withEventReplay())]
+  providers: [
+    provideStore({ crypto: cryptoReducer }), // ✅ Ensure correct state key
+    provideEffects([CryptoEffects]), // ✅ Provide NgRx Effects
+    provideHttpClient(withFetch()), // ✅ Enable fetch API for better SSR compatibility
+    ApiService // ✅ Ensure ApiService is available globally
+  ]
 };
