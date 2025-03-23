@@ -1,0 +1,103 @@
+<div class="flex flex-col p-4 w-full gap-6">
+    <div class="flex justify-center">
+        <mat-card class="toggle-card">
+            <mat-card-title class="p-1">Select Joke Category</mat-card-title>
+            <mat-card-content>
+                <mat-button-toggle-group aria-label="Font Style" (change)="onToggleChange($event)">
+                    <mat-button-toggle class="custom-toggle" value="Random">Random</mat-button-toggle>
+                    <mat-button-toggle class="custom-toggle" value="Programming">Programming</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <div class="flex flex-col lg:flex-row gap-2 w-full">
+        <div class="flex-1" *ngIf="joke">
+            <div *ngIf="loading" class="flex justify-center mt-6">
+                <mat-spinner diameter="50" strokeWidth="4"></mat-spinner>
+            </div>
+            <div class="mt-3 flex justify-center">
+                <mat-card class="joke-card animate-fade-in relative w-full">
+                    <i *ngIf="showPunchLine"
+                        class="heart fa-solid fa-heart-circle-plus absolute top-2 right-2 text-red-500 z-10"
+                        (click)="addFavorite(joke)"></i>
+                    <mat-card-header>
+                        <mat-card-content
+                            class="text-xl font-semibold text-gray-500 flex items-center justify-center text-center w-full fw-bold">
+                            {{ joke.type | titlecase }} Joke
+                        </mat-card-content>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <p class="text-gray-800 fw-normal text-lg py-4 flex items-center">
+                            <mat-icon class="text-blue-500 mr-2">info</mat-icon>
+                            {{ joke.setup }}
+                        </p>
+                        <p *ngIf="loadingPunch" class="flex justify-center mt-6">
+                            <mat-spinner diameter="50" strokeWidth="4"></mat-spinner>
+                        </p>
+                        <p *ngIf="showPunchLine" class="text-gray-500 text-xl fw-bold flex items-center">
+                            <mat-icon class="mr-2">tag_faces</mat-icon>
+                            {{ joke.punchline }}
+                        </p>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+        <div [ngClass]="{ 'flex-1': joke, 'w-full flex justify-center': !joke }">
+            <mat-card  class="joke-card animate-fade-in  p-2 w-full max-w-5xl">
+                <mat-card-title class="text-xl font-semibold text-gray-500 flex items-center justify-center text-center w-full mb-4 fw-bold">
+                     Favorite Jokes
+                     
+                </mat-card-title>
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 px-2 gap-2">
+                    <input type="text" [(ngModel)]="searchTerm" placeholder="Search setup or punchline..."
+                        class="border border-gray-300 rounded px-3 py-1 w-full sm:max-w-md" />
+                    <div class="flex items-center gap-2">
+                        <select [(ngModel)]="sortField" class="border border-gray-300 rounded px-2 py-1">
+                            <option value="type">Sort by Type</option>
+                            <option value="setup">Sort by Setup</option>
+                            <option value="punchline">Sort by Punchline</option>
+                        </select>
+                        <button class="text-sm text-blue-500 hover:text-blue-700 underline" (click)="toggleSortOrder()">
+                            {{ sortAsc ? 'Ascending' : 'Descending' }}
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto border border-gray-300 rounded-md">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-2 py-2 text-left text-gray-500">Type</th>
+                                <th class="px-2 py-2 text-left text-gray-500">Setup</th>
+                                <th class="px-2 py-2 text-left text-gray-500">Punchline</th>
+                                <th class="px-2 py-2 text-center text-gray-500">Rating</th>
+                                <th class="px-2 py-2 text-center text-gray-500">Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let joke of filteredAndSortedFavorites()"
+                                class="border-t hover:bg-gray-50 transition">
+                                <td class="px-2 py-2">{{ joke.type }}</td>
+                                <td class="px-2 py-2">{{ joke.setup }}</td>
+                                <td class="px-2 py-2">{{ joke.punchline }}</td>
+                                <td class="stars px-2 py-2 text-center">
+                                    <ng-container *ngFor="let star of stars">
+                                        <mat-icon class="cursor-pointer text-yellow-500"
+                                            (click)="setRating(joke, star)">
+                                            {{ joke.rating >= star ? 'star' : 'star_border' }}
+                                        </mat-icon>
+                                    </ng-container>
+                                </td>
+                                <td class="px-1 py-2 text-center">
+                                    <button class="text-red-600 hover:text-red-800 transition"
+                                        (click)="removeFavorite(joke)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </mat-card>
+        </div>
+    </div>
+</div>
