@@ -1,4 +1,11 @@
-<div class="p-2">
-    <app-charts></app-charts>
-    <app-table></app-table>
-</div>
+<mat-toolbar class="toolBar">
+    <button mat-icon-button (click)="toggleSidebar()" style="background-color:#5d648d; color: white;">
+        <mat-icon>menu</mat-icon>
+    </button>
+    <span class="mx-2">Jokes</span>
+</mat-toolbar>
+
+<app-sidebar #sidebar>
+    <router-outlet></router-outlet>
+</app-sidebar>
+<app-footer></app-footer>
